@@ -1,0 +1,63 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+
+  config.vm.define "consul1" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "consul1"
+    node.vm.network :public_network, ip: "192.168.1.120"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 consul1
+192.168.1.121 consul2
+192.168.1.122 consul3
+192.168.1.123 consul4\" >> /etc/hosts"
+    node.vm.provision :shell, inline: "apt-get -y install zip && cd /vagrant && wget https://releases.hashicorp.com/consul/0.6.4/consul_0.6.4_linux_amd64.zip && unzip consul_0.6.4_linux_amd64.zip"
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sudo -u vagrant /vagrant/consul agent -server -bootstrap-expect 3 -data-dir=/tmp/consul -bind=192.168.1.120 > /tmp/consul-run.log 2>&1 &" >> /etc/rc.local'
+    node.vm.provision :shell, inline: '/etc/rc.local'
+  end
+
+
+  config.vm.define "consul2" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "consul2"
+    node.vm.network :public_network, ip: "192.168.1.121"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 consul1
+192.168.1.121 consul2
+192.168.1.122 consul3
+192.168.1.123 consul4\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sudo -u vagrant /vagrant/consul agent -server -bootstrap-expect 3 -data-dir=/tmp/consul -bind=192.168.1.121 > /tmp/consul-run.log 2>&1 &" >> /etc/rc.local'
+    node.vm.provision :shell, inline: '/etc/rc.local'
+  end
+
+  config.vm.define "consul3" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "consul3"
+    node.vm.network :public_network, ip: "192.168.1.122"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 consul1
+192.168.1.121 consul2
+192.168.1.122 consul3
+192.168.1.123 consul4\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sudo -u vagrant /vagrant/consul agent -server -bootstrap-expect 3 -data-dir=/tmp/consul -bind=192.168.1.122 > /tmp/consul-run.log 2>&1 &" >> /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sleep 10 && sudo -u vagrant /vagrant/consul join 192.168.1.120 192.168.1.121 192.168.1.122" >> /etc/rc.local'
+    node.vm.provision :shell, inline: '/etc/rc.local'
+  end
+
+  config.vm.define "consul4" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "consul4"
+    node.vm.network :public_network, ip: "192.168.1.123"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 consul1
+192.168.1.121 consul2
+192.168.1.122 consul3
+192.168.1.123 consul4\" >> /etc/hosts"
+    node.vm.provision :shell, inline: "apt-get -y install zip && cd /tmp && wget https://releases.hashicorp.com/consul/0.6.4/consul_0.6.4_web_ui.zip && unzip consul_0.6.4_web_ui.zip"
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sudo -u vagrant /vagrant/consul agent -data-dir /tmp/consul -client 192.168.1.123 -ui-dir /tmp -bind=192.168.1.123 -join 192.168.1.120  > /tmp/consul-run.log 2>&1 &" >> /etc/rc.local'
+    node.vm.provision :shell, inline: '/etc/rc.local'
+
+  end
+
+end
