@@ -1,0 +1,84 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+
+  config.vm.define "etcd1" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "etcd1"
+    node.vm.network :public_network, ip: "192.168.1.122"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 master
+192.168.1.121 flannel
+192.168.1.122 etcd1-pub
+192.168.1.123 etcd2-pub
+192.168.1.124 etcd3-pub
+192.168.1.125 minion1
+192.168.1.126 minion2\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'apt-get -y install zip && cd /vagrant && curl -L  https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz -o etcd-v2.3.6-linux-amd64.tar.gz && tar xzvf etcd-v2.3.6-linux-amd64.tar.gz && cp -rp etcd-v2.3.6-linux-amd64 /home/vagrant/'
+    node.vm.provision :shell, inline: 'cd /home/vagrant/etcd-v2.3.6-linux-amd64/ && sudo -u vagrant nohup ./etcd --name etcd1 --initial-advertise-peer-urls http://etcd1-pub:2380 \
+--listen-peer-urls http://etcd1-pub:2380 \
+--listen-client-urls http://etcd1-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd1-pub:2379 \
+--initial-cluster-token etcd-cluster-1 \
+--initial-cluster etcd1=http://etcd1-pub:2380,etcd2=http://etcd2-pub:2380,etcd3=http://etcd3-pub:2380 \
+--initial-cluster-state new > /tmp/etcd-run.log 2>&1 &'
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sleep 10 && sudo -u vagrant ./etcd --name etcd1 --initial-advertise-peer-urls http://etcd1-pub:2380 \
+--listen-peer-urls http://etcd1-pub:2380 \
+--listen-client-urls http://etcd1-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd1-pub:2379 > /tmp/etcd-run.log 2>&1 &" >> /etc/rc.local'
+  end
+
+  config.vm.define "etcd2" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "etcd2"
+    node.vm.network :public_network, ip: "192.168.1.123"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 master
+192.168.1.121 flannel
+192.168.1.122 etcd1-pub
+192.168.1.123 etcd2-pub
+192.168.1.124 etcd3-pub
+192.168.1.125 minion1
+192.168.1.126 minion2\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'cp -rp /vagrant/etcd-v2.3.6-linux-amd64 /home/vagrant/'
+    node.vm.provision :shell, inline: 'cd /home/vagrant/etcd-v2.3.6-linux-amd64/ && sudo -u vagrant nohup ./etcd --name etcd2 --initial-advertise-peer-urls http://etcd2-pub:2380 \
+--listen-peer-urls http://etcd2-pub:2380 \
+--listen-client-urls http://etcd2-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd2-pub:2379 \
+--initial-cluster-token etcd-cluster-1 \
+--initial-cluster etcd1=http://etcd1-pub:2380,etcd2=http://etcd2-pub:2380,etcd3=http://etcd3-pub:2380 \
+--initial-cluster-state new > /tmp/etcd-run.log 2>&1 &'
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sleep 10 && sudo -u vagrant ./etcd --name etcd2 --initial-advertise-peer-urls http://etcd2-pub:2380 \
+--listen-peer-urls http://etcd2-pub:2380 \
+--listen-client-urls http://etcd2-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd2-pub:2379 > /tmp/etcd-run.log 2>&1 &" >> /etc/rc.local'
+  end
+
+  config.vm.define "etcd3" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "etcd3"
+    node.vm.network :public_network, ip: "192.168.1.124"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 master
+192.168.1.121 flannel
+192.168.1.122 etcd1-pub
+192.168.1.123 etcd2-pub
+192.168.1.124 etcd3-pub
+192.168.1.125 minion1
+192.168.1.126 minion2\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'cp -rp /vagrant/etcd-v2.3.6-linux-amd64 /home/vagrant/'
+    node.vm.provision :shell, inline: 'cd /home/vagrant/etcd-v2.3.6-linux-amd64/ && sudo -u vagrant nohup ./etcd --name etcd3 --initial-advertise-peer-urls http://etcd3-pub:2380 \
+--listen-peer-urls http://etcd3-pub:2380 \
+--listen-client-urls http://etcd3-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd3-pub:2379 \
+--initial-cluster-token etcd-cluster-1 \
+--initial-cluster etcd1=http://etcd1-pub:2380,etcd2=http://etcd2-pub:2380,etcd3=http://etcd3-pub:2380 \
+--initial-cluster-state new > /tmp/etcd-run.log 2>&1 &'
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sleep 10 && sudo -u vagrant ./etcd --name etcd3-pub --initial-advertise-peer-urls http://etcd3-pub:2380 \
+--listen-peer-urls http://etcd3-pub:2380 \
+--listen-client-urls http://etcd3-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd3-pub:2379 > /tmp/etcd-run.log 2>&1 &" >> /etc/rc.local'
+  end
+
+end
