@@ -1,3 +1,4 @@
+```
 vagrant@etcd1:~$ tail -f /tmp/etcd-run.log
 2016-06-04 22:39:05.153321 W | etcdserver: failed to reach the peerURL(http://etcd3-pub:2380) of member 2b5ddd20d38d2693 (Get http://etcd3-pub:2380/version: dial tcp 192.168.1.124:2380: i/o timeout)
 2016-06-04 22:39:05.153360 W | etcdserver: cannot get the version of member 2b5ddd20d38d2693 (Get http://etcd3-pub:2380/version: dial tcp 192.168.1.124:2380: i/o timeout)
@@ -20,3 +21,4 @@ member 2b5ddd20d38d2693 is healthy: got healthy result from http://etcd3-pub:237
 member 8ab62b3125370c1f is healthy: got healthy result from http://etcd1-pub:2379
 cluster is healthy
 vagrant@etcd1:~/etcd-v2.3.6-linux-amd64$
+```
