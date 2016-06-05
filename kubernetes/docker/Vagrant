@@ -1,0 +1,179 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+
+  config.vm.define "etcd1" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "etcd1"
+    node.vm.network :public_network, ip: "192.168.1.122"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 master-pub
+192.168.1.121 flannel-pub
+192.168.1.122 etcd1-pub
+192.168.1.123 etcd2-pub
+192.168.1.124 etcd3-pub
+192.168.1.125 minion1-pub
+192.168.1.126 minion2-pub\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'apt-get -y install zip && cd /vagrant && curl -L  https://github.com/coreos/etcd/releases/download/v2.3.6/etcd-v2.3.6-linux-amd64.tar.gz -o etcd-v2.3.6-linux-amd64.tar.gz && tar xzvf etcd-v2.3.6-linux-amd64.tar.gz && cp -rp etcd-v2.3.6-linux-amd64 /home/vagrant/'
+    node.vm.provision :shell, inline: 'cd /home/vagrant/etcd-v2.3.6-linux-amd64/ && sudo -u vagrant nohup ./etcd --name etcd1 --initial-advertise-peer-urls http://etcd1-pub:2380 \
+--listen-peer-urls http://etcd1-pub:2380 \
+--listen-client-urls http://etcd1-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd1-pub:2379 \
+--initial-cluster-token etcd-cluster-1 \
+--initial-cluster etcd1=http://etcd1-pub:2380,etcd2=http://etcd2-pub:2380,etcd3=http://etcd3-pub:2380 \
+--initial-cluster-state new > /tmp/etcd-run.log 2>&1 &'
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sleep 10 && sudo -u vagrant ./etcd --name etcd1 --initial-advertise-peer-urls http://etcd1-pub:2380 \
+--listen-peer-urls http://etcd1-pub:2380 \
+--listen-client-urls http://etcd1-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd1-pub:2379 > /tmp/etcd-run.log 2>&1 &" >> /etc/rc.local'
+  end
+
+  config.vm.define "etcd2" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "etcd2"
+    node.vm.network :public_network, ip: "192.168.1.123"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 master-pub
+192.168.1.121 flannel-pub
+192.168.1.122 etcd1-pub
+192.168.1.123 etcd2-pub
+192.168.1.124 etcd3-pub
+192.168.1.125 minion1-pub
+192.168.1.126 minion2-pub\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'cp -rp /vagrant/etcd-v2.3.6-linux-amd64 /home/vagrant/'
+    node.vm.provision :shell, inline: 'cd /home/vagrant/etcd-v2.3.6-linux-amd64/ && sudo -u vagrant nohup ./etcd --name etcd2 --initial-advertise-peer-urls http://etcd2-pub:2380 \
+--listen-peer-urls http://etcd2-pub:2380 \
+--listen-client-urls http://etcd2-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd2-pub:2379 \
+--initial-cluster-token etcd-cluster-1 \
+--initial-cluster etcd1=http://etcd1-pub:2380,etcd2=http://etcd2-pub:2380,etcd3=http://etcd3-pub:2380 \
+--initial-cluster-state new > /tmp/etcd-run.log 2>&1 &'
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sleep 10 && sudo -u vagrant ./etcd --name etcd2 --initial-advertise-peer-urls http://etcd2-pub:2380 \
+--listen-peer-urls http://etcd2-pub:2380 \
+--listen-client-urls http://etcd2-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd2-pub:2379 > /tmp/etcd-run.log 2>&1 &" >> /etc/rc.local'
+  end
+
+  config.vm.define "etcd3" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "etcd3"
+    node.vm.network :public_network, ip: "192.168.1.124"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 master-pub
+192.168.1.121 flannel-pub
+192.168.1.122 etcd1-pub
+192.168.1.123 etcd2-pub
+192.168.1.124 etcd3-pub
+192.168.1.125 minion1-pub
+192.168.1.126 minion2-pub\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'cp -rp /vagrant/etcd-v2.3.6-linux-amd64 /home/vagrant/'
+    node.vm.provision :shell, inline: 'cd /home/vagrant/etcd-v2.3.6-linux-amd64/ && sudo -u vagrant nohup ./etcd --name etcd3 --initial-advertise-peer-urls http://etcd3-pub:2380 \
+--listen-peer-urls http://etcd3-pub:2380 \
+--listen-client-urls http://etcd3-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd3-pub:2379 \
+--initial-cluster-token etcd-cluster-1 \
+--initial-cluster etcd1=http://etcd1-pub:2380,etcd2=http://etcd2-pub:2380,etcd3=http://etcd3-pub:2380 \
+--initial-cluster-state new > /tmp/etcd-run.log 2>&1 &'
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sleep 10 && sudo -u vagrant ./etcd --name etcd3-pub --initial-advertise-peer-urls http://etcd3-pub:2380 \
+--listen-peer-urls http://etcd3-pub:2380 \
+--listen-client-urls http://etcd3-pub:2379,http://127.0.0.1:2379 \
+--advertise-client-urls http://etcd3-pub:2379 > /tmp/etcd-run.log 2>&1 &" >> /etc/rc.local'
+  end
+
+  config.vm.define "flannel" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "flannel"
+    node.vm.network :public_network, ip: "192.168.1.121"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 master-pub
+192.168.1.121 flannel-pub
+192.168.1.122 etcd1-pub
+192.168.1.123 etcd2-pub
+192.168.1.124 etcd3-pub
+192.168.1.125 minion1-pub
+192.168.1.126 minion2-pub\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'cd /vagrant && wget https://github.com/coreos/flannel/releases/download/v0.5.5/flannel-0.5.5-linux-amd64.tar.gz && tar -xf flannel-0.5.5-linux-amd64.tar.gz'
+    node.vm.provision :shell, inline: 'cp -rp /vagrant/flannel-0.5.5 /home/vagrant'
+    node.vm.provision :shell, inline: 'echo "{ \"Network\": \"172.16.0.0/16\" }" >> /home/vagrant/flannel-networks.json'
+    node.vm.provision :shell, inline: 'curl http://etcd1-pub:2379/v2/keys/coreos.com/network/config -XPUT --data-urlencode value@/home/vagrant/flannel-networks.json'
+    node.vm.provision :shell, inline: 'sudo -u vagrant nohup /home/vagrant/flannel-0.5.5/flanneld -iface=flannel-pub --etcd-endpoints=http://etcd1-pub:2379,http://etcd2-pub:2379,http://etcd3-pub:2379 --listen=0.0.0.0:8888 > /tmp/flannel-run.log 2>&1 &'
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sudo -u vagrant nohup /home/vagrant/flannel-0.5.5/flanneld -iface=flannel-pub --etcd-endpoints=http://etcd1-pub:2379,http://etcd2-pub:2379,http://etcd3-pub:2379 --listen=0.0.0.0:8888 > /tmp/flannel-run.log 2>&1 &" >> /etc/rc.local'
+  end
+
+  config.vm.define "master" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "master"
+    node.vm.network :public_network, ip: "192.168.1.120"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 master-pub
+192.168.1.121 flannel-pub
+192.168.1.122 etcd1-pub
+192.168.1.123 etcd2-pub
+192.168.1.124 etcd3-pub
+192.168.1.125 minion1-pub
+192.168.1.126 minion2-pub\" >> /etc/hosts"
+    node.vm.provision :shell, inline: "cd /vagrant && wget https://storage.googleapis.com/kubernetes-release/release/v1.2.4/bin/linux/amd64/hyperkube"
+    node.vm.provision :shell, inline: 'nohup /vagrant/hyperkube apiserver --insecure-bind-address=0.0.0.0 --service-cluster-ip-range=10.0.0.0/24 --etcd-servers=http://etcd1-pub:2379,http://etcd2-pub:2379,http://etcd3-pub:2379 > /tmp/apiserver-run.log 2>&1 &'
+    node.vm.provision :shell, inline: 'nohup /vagrant/hyperkube controller-manager > /tmp/controllermanager-run.log 2>&1 &'
+    node.vm.provision :shell, inline: 'nohup /vagrant/hyperkube scheduler > /tmp/scheduler-run.log 2>&1 &'
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sudo -u vagrant nohup /vagrant/hyperkube apiserver --insecure-bind-address=0.0.0.0 --service-cluster-ip-range=10.0.0.0/24 --etcd-servers=http://etcd1-pub:2379,http://etcd2-pub:2379,http://etcd3-pub:2379 > /tmp/apiserver-run.log 2>&1 &" >> /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sudo -u vagrant nohup /vagrant/hyperkube controller-manager > /tmp/controllermanager-run.log 2>&1 &" >> /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "sudo -u vagrant nohup /vagrant/hyperkube scheduler > /tmp/scheduler-run.log 2>&1 &" >> /etc/rc.local'
+  end
+
+  config.vm.define "minion1" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "minion1"
+    node.vm.network :public_network, ip: "192.168.1.125"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 master-pub
+192.168.1.121 flannel-pub
+192.168.1.122 etcd1-pub
+192.168.1.123 etcd2-pub
+192.168.1.124 etcd3-pub
+192.168.1.125 minion1-pub
+192.168.1.126 minion2-pub\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'cp -rp /vagrant/flannel-0.5.5 /home/vagrant'
+    # normal (not client/server) setup
+    #    node.vm.provision :shell, inline: 'sudo -u vagrant nohup /home/vagrant/flannel-0.5.5/flanneld -iface=minion1-pub --etcd-endpoints=http://etcd1-pub:2379,http://etcd2-pub:2379,http://etcd3-pub:2379 > /tmp/flannel-run.log 2>&1 &'
+    # client/server setup
+    node.vm.provision :shell, inline: 'nohup /home/vagrant/flannel-0.5.5/flanneld -iface=eth1 --remote=flannel-pub:8888 > /tmp/flannel-run.log 2>&1 &'
+    node.vm.provision :shell, inline: "apt-get -y install docker.io"
+    #add vagrant to docker group & run this as vagrant instead of root
+    node.vm.provision :shell, inline: 'nohup /vagrant/hyperkube proxy --master=http://master-pub:8080 > /tmp/proxy-run.out 2>&1 &'
+    #previous comment + replace hostname with ip (using --hostname_override)
+    node.vm.provision :shell, inline: 'nohup /vagrant/hyperkube kubelet --api-servers=http://master-pub:8080 > /tmp/kubelet-run.out 2>&1 &'
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "nohup /home/vagrant/flannel-0.5.5/flanneld -iface=eth1 --remote=flannel-pub:8888 > /tmp/flannel-run.log 2>&1 &" >> /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "nohup /vagrant/hyperkube proxy --master=http://master-pub:8080 > /tmp/proxy-run.out 2>&1 &" >> /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "nohup /vagrant/hyperkube kubelet --api-servers=http://master-pub:8080 > /tmp/kubelet-run.out 2>&1 &" >> /etc/rc.local'
+  end
+
+  config.vm.define "minion2" do |node|
+    node.vm.box = "ubuntu/trusty64"
+    node.vm.hostname  = "minion2"
+    node.vm.network :public_network, ip: "192.168.1.126"
+    node.vm.provision :shell, inline: "echo \"192.168.1.120 master-pub
+192.168.1.121 flannel-pub
+192.168.1.122 etcd1-pub
+192.168.1.123 etcd2-pub
+192.168.1.124 etcd3-pub
+192.168.1.125 minion1-pub
+192.168.1.126 minion2-pub\" >> /etc/hosts"
+    node.vm.provision :shell, inline: 'cp -rp /vagrant/flannel-0.5.5 /home/vagrant'
+    # normal (not client/server) setup
+    #    node.vm.provision :shell, inline: 'sudo -u vagrant nohup /home/vagrant/flannel-0.5.5/flanneld -iface=minion2-pub --etcd-endpoints=http://etcd1-pub:2379,http://etcd2-pub:2379,http://etcd3-pub:2379 > /tmp/flannel-run.log 2>&1 &'
+    # client/server setup
+    node.vm.provision :shell, inline: 'nohup /home/vagrant/flannel-0.5.5/flanneld -iface=eth1 --remote=flannel-pub:8888 > /tmp/flannel-run.log 2>&1 &'
+    node.vm.provision :shell, inline: "apt-get -y install docker.io"
+    #add vagrant to docker group & run this as vagrant instead of root
+    node.vm.provision :shell, inline: 'nohup /vagrant/hyperkube proxy --master=http://master-pub:8080 > /tmp/proxy-run.out 2>&1 &'
+    #previous comment + replace hostname with ip (using --hostname_override)
+    node.vm.provision :shell, inline: 'nohup /vagrant/hyperkube kubelet --api-servers=http://master-pub:8080 > /tmp/kubelet-run.out 2>&1 &'
+    node.vm.provision :shell, inline: 'echo "#!/bin/sh" > /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "nohup /home/vagrant/flannel-0.5.5/flanneld -iface=eth1 --remote=flannel-pub:8888 > /tmp/flannel-run.log 2>&1 &" >> /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "nohup /vagrant/hyperkube proxy --master=http://master-pub:8080 > /tmp/proxy-run.out 2>&1 &" >> /etc/rc.local'
+    node.vm.provision :shell, inline: 'echo "nohup /vagrant/hyperkube kubelet --api-servers=http://master-pub:8080 > /tmp/kubelet-run.out 2>&1 &" >> /etc/rc.local'
+  end
+
+end
